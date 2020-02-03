@@ -68,12 +68,11 @@
 //
 //------------------------------------------------------------------------------------------------------------------------------
 
-#include <indigo/indigo_bus.h>
-
 #import "indigo_ica_ptp.h"
 #import "indigo_ica_ptp_nikon.h"
 #import "indigo_ica_ptp_canon.h"
 #import "indigo_ica_ptp_sony.h"
+#import <TargetConditionals.h>
 
 char ptpReadChar(unsigned char** buf) {
   char value = *(SInt8*)(*buf);
@@ -891,12 +890,10 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(NSString *)description {
-  if (indigo_get_log_level() >= INDIGO_LOG_DEBUG)
-    return [self debug];
   return [NSString stringWithFormat:@"%@ %@, PTP V%.2f + %8@ V%.2f", _model, _version, _standardVersion / 100.0, _vendorExtensionDesc, _vendorExtensionVersion / 100.0];
 }
 
--(NSString *)debug {
+-(NSString *)debugDescription {
   NSMutableString *s = [NSMutableString stringWithFormat:@"%@ %@, PTP V%.2f + %8@ V%.2f\n", _model, _version, _standardVersion / 100.0, _vendorExtensionDesc, _vendorExtensionVersion / 100.0];
   if (_operationsSupported.count > 0) {
     [s appendFormat:@"\nOperations:\n"];
@@ -960,6 +957,8 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     objectAdded = false;
     _imagesPerShot = 1;
     _remainingCount = 0;
+    self.isoSpeedPropertyCode = PTPPropertyCodeExposureIndex;
+    self.shutterSpeedPropertyCode = PTPPropertyCodeExposureTime;
   }
   return self;
 }
@@ -999,7 +998,11 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(void)requestEnableTethering {
+#if TARGET_OS_OSX
   [_icCamera requestEnableTethering];
+#else
+    // Doesn't appear to actually be used anymore?
+#endif
 }
 
 -(void)checkForEvent {
@@ -1214,7 +1217,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(void)processConnect {
-  [self.delegate log:[NSString stringWithFormat:@"Initialized %@\n", _info.debug]];
+  [self.delegate log:[NSString stringWithFormat:@"Initialized %@\n", _info.debugDescription]];
   [_delegate cameraConnected:self];
 }
 
@@ -1258,12 +1261,10 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with error %@", request, error]];
   } else {
     PTPResponse* response = [[self.responseClass alloc] initWithData:responseData];
-    if (indigo_get_log_level() >= INDIGO_LOG_DEBUG) {
-      if (data)
-        [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@ and %lub", request, response, data.length]];
-      else
-        [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@", request, response]];
-    }
+    if (data)
+      [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@ and %lub", request, response, data.length]];
+    else
+      [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@", request, response]];
     [self processRequest:request Response:response inData:data];
   }
 }
@@ -1366,9 +1367,23 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 -(void)stopBurst {
 }
 
+- (PTPProperty *)isoSpeedProperty {
+    return self.info.properties[@(self.isoSpeedPropertyCode)];
+}
+
+- (PTPProperty *)shutterSpeedProperty {
+    return self.info.properties[@(self.shutterSpeedPropertyCode)];
+}
+
+- (NSInteger)batteryLevel {
+    return [_icCamera batteryLevel];
+}
+
 -(double)startExposure {
   _remainingCount = _imagesPerShot;
+#if TARGET_OS_OSX
   [_icCamera requestTakePicture];
+#endif
   return 0.0;
 }
 
@@ -1388,14 +1403,14 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   PTPRequest *request = [[self.requestClass alloc] init];
   request.operationCode = operationCode;
   request.numberOfParameters = 0;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:data sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:data];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode {
   PTPRequest *request = [[self.requestClass alloc] init];
   request.operationCode = operationCode;
   request.numberOfParameters = 0;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:nil sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 {
@@ -1403,7 +1418,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.operationCode = operationCode;
   request.numberOfParameters = 1;
   request.parameter1 = parameter1;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:nil sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 param2:(unsigned int)parameter2 {
@@ -1412,7 +1427,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.numberOfParameters = 2;
   request.parameter1 = parameter1;
   request.parameter2 = parameter2;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:nil sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 param2:(unsigned int)parameter2  param3:(unsigned int)parameter3 {
@@ -1422,7 +1437,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.parameter1 = parameter1;
   request.parameter2 = parameter2;
   request.parameter3 = parameter3;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:nil sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 data:(NSData *)data {
@@ -1430,7 +1445,18 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.operationCode = operationCode;
   request.numberOfParameters = 1;
   request.parameter1 = parameter1;
-  [_icCamera requestSendPTPCommand:request.commandBuffer outData:data sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+    [self sendPTPCommand:request data:data];
+}
+
+-(void)sendPTPCommand:(PTPRequest *)request data:(NSData *)data {
+#if TARGET_OS_OSX
+    [_icCamera requestSendPTPCommand:request.commandBuffer outData:data sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+#else
+    void *ctx = CFBridgingRetain(request);
+    [_icCamera requestSendPTPCommand:request.commandBuffer outData:data completion:^(NSData * _Nonnull responseData, NSData * _Nonnull ptpResponseData, NSError * _Nullable error) {
+        [self didSendPTPCommand:request.commandBuffer inData:responseData response:ptpResponseData error:error contextInfo:ctx];
+    }];
+#endif
 }
 
 -(void)device:(ICDevice*)camera didOpenSessionWithError:(NSError*)error {
@@ -1475,8 +1501,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 
 -(void)cameraDevice:(ICCameraDevice*)camera didReceivePTPEvent:(NSData*)eventData {
   PTPEvent *event = [[self.eventClass alloc] initWithData:eventData];
-  if (indigo_get_log_level() >= INDIGO_LOG_DEBUG)
-    [self.delegate debug:[NSString stringWithFormat:@"Received %@", event]];
+  [self.delegate debug:[NSString stringWithFormat:@"Received %@", event]];
   switch (_info.vendorExtension) {
     case PTPVendorExtensionNikon: {
       break;
@@ -1495,7 +1520,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 
 @implementation PTPBrowser {
   ICDeviceBrowser *icBrowser;
-  NSMutableArray *cameras;
+  NSMutableArray<PTPCamera *> *cameras;
 }
 
 -(id)initWithDelegate:(NSObject<PTPDelegateProtocol> *)delegate {
@@ -1504,10 +1529,16 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     _delegate = delegate;
     icBrowser = [[ICDeviceBrowser alloc] init];
     icBrowser.delegate = self;
+#if TARGET_OS_OSX // ios and mac catalyst can only talk to cameras.
     icBrowser.browsedDeviceTypeMask = ICDeviceTypeMaskCamera | ICDeviceLocationTypeMaskLocal;
+#endif
     cameras = [NSMutableArray array];
   }
   return self;
+}
+
+- (NSArray<PTPCamera *> *)cameras {
+    return [NSArray arrayWithArray:cameras];
 }
 
 -(void)start {

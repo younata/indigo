@@ -6,8 +6,6 @@
 //  Copyright © 2017 CloudMakers, s. r. o. All rights reserved.
 //
 
-#include <indigo/indigo_bus.h>
-
 #import "indigo_ica_ptp_sony.h"
 
 static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
@@ -172,6 +170,8 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
   self = [super initWithICCamera:icCamera delegate:delegate];
   if (self) {
     liveView = false;
+    self.isoSpeedPropertyCode = PTPPropertyCodeSonyISO;
+    self.shutterSpeedPropertyCode = PTPPropertyCodeSonyShutterSpeed;
   }
   return self;
 }
@@ -264,7 +264,7 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
       break;
     }
     case PTPPropertyCodeFNumber: {
-			if (![property.value.description isEqualTo:@"0"]) {
+			if (![property.value.description isEqualToString:@"0"]) {
 				int value = property.value.intValue;
 				NSArray *values = @[ @"-", property.value.description,  @"+" ];
 				NSArray *labels = @[ @"-", [NSString stringWithFormat:@"f/%.1f", value / 100.0],  @"+" ];
@@ -483,7 +483,7 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
           if (response.responseCode == PTPResponseCodeAccessDenied) {
             if (retryCount < 100) {
               retryCount++;
-              indigo_usleep(100000);
+              usleep(100000);
               [self getPreviewImage];
             } else {
               liveView = false;
@@ -636,7 +636,7 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
       [self setProperty:code operation:PTPRequestCodeSonySetControlDeviceB value:@"1"];
       for (wait = 0; wait < MAX_WAIT; wait++) {
         [self sendPTPRequest:PTPRequestCodeSonyGetAllDevicePropData];
-        indigo_usleep(MAX_DELAY);
+        usleep(MAX_DELAY);
         property = self.info.properties[[NSNumber numberWithUnsignedShort:code]];
         if (property.value.intValue == map[i + 1]) {
           break;
@@ -650,7 +650,7 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
       [self setProperty:code operation:PTPRequestCodeSonySetControlDeviceB value:@"-1"];
       for (wait = 0; wait < MAX_WAIT; wait++) {
         [self sendPTPRequest:PTPRequestCodeSonyGetAllDevicePropData];
-        indigo_usleep(MAX_DELAY);
+        usleep(MAX_DELAY);
         property = self.info.properties[[NSNumber numberWithUnsignedShort:code]];
         if (property.value.intValue == map[i - 1]) {
           break;

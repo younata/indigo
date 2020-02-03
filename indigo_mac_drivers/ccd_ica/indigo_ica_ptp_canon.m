@@ -6,8 +6,6 @@
 //  Copyright © 2017 CloudMakers, s. r. o. All rights reserved.
 //
 
-#include <indigo/indigo_bus.h>
-
 #import "indigo_ica_ptp_canon.h"
 
 static long ptpReadCanonImageFormat(unsigned char** buf) {
@@ -504,13 +502,16 @@ static struct info {
   self = [super initWithICCamera:icCamera delegate:delegate];
   if (self) {
     const char *name = [super.name.uppercaseString cStringUsingEncoding:NSASCIIStringEncoding];
-    for (int i = 0; info[i].name; i++)
+    for (int i = 0; info[i].name; i++) {
       if (!strcmp(name, info[i].name)) {
         self.width = info[i].width;
         self.height = info[i].height;
         self.pixelSize = info[i].pixelSize;
         break;
       }
+    }
+    self.isoSpeedPropertyCode = PTPPropertyCodeCanonISOSpeed;
+    self.shutterSpeedPropertyCode = PTPPropertyCodeCanonShutterSpeed;
     addedFileName = [NSMutableDictionary dictionary];
   }
   return self;
@@ -1548,6 +1549,19 @@ static struct info {
     focusSteps = steps + 1;
     [self sendPTPRequest:PTPRequestCodeCanonDriveLens param1:0x8001];
   }
+}
+
+- (PTPProperty *)isoSpeedProperty {
+    return self.info.properties[@(PTPPropertyCodeCanonISOSpeed)];
+}
+
+- (PTPProperty *)shutterSpeedProperty {
+    return self.info.properties[@(PTPPropertyCodeCanonShutterSpeed)];
+}
+
+- (NSInteger)batteryLevel {
+    PTPProperty *batterylevel = self.info.properties[@(PTPPropertyCodeBatteryLevel)];
+    return [(NSNumber *)batterylevel.value integerValue];
 }
 
 @end

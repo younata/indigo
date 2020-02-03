@@ -431,21 +431,27 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 
 @property (readonly) ICCameraDevice *icCamera;
 @property (readonly) NSObject<PTPDelegateProtocol> *delegate;
-@property (readonly) NSString *name;
+@property (readonly, nonnull) NSString *name;
 @property (readonly) PTPVendorExtension extension;
 
-@property (readonly) Class requestClass;
-@property (readonly) Class responseClass;
-@property (readonly) Class eventClass;
-@property (readonly) Class propertyClass;
-@property (readonly) Class deviceInfoClass;
+@property (readonly, nonnull) Class requestClass;
+@property (readonly, nonnull) Class responseClass;
+@property (readonly, nonnull) Class eventClass;
+@property (readonly, nonnull) Class propertyClass;
+@property (readonly, nonnull) Class deviceInfoClass;
+
+@property (readonly, nullable) PTPProperty *isoSpeedProperty;
+@property uint16_t isoSpeedPropertyCode;
+@property (readonly, nullable) PTPProperty *shutterSpeedProperty;
+@property uint16_t shutterSpeedPropertyCode;
+@property (readonly) NSInteger batteryLevel;
 
 @property BOOL avoidAF;
 @property BOOL useMirrorLockup;
 @property BOOL deleteDownloadedImage;
 @property BOOL zoomPreview;
 
-@property PTPDeviceInfo *info;
+@property (readwrite, nullable) PTPDeviceInfo *info;
 @property NSObject *userData;
 @property int width;
 @property int height;
@@ -460,24 +466,24 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 -(BOOL)propertyIsSupported:(PTPPropertyCode)code;
 -(void)getPreviewImage;
 -(void)checkForEvent;
--(void)processEvent:(PTPEvent *)event;
--(void)processPropertyDescription:(PTPProperty *)property;
--(void)processRequest:(PTPRequest *)request Response:(PTPResponse *)response inData:(NSData*)data;
+-(void)processEvent:(PTPEvent *_Nonnull)event;
+-(void)processPropertyDescription:(PTPProperty *_Nonnull)property;
+-(void)processRequest:(PTPRequest *_Nonnull)request Response:(PTPResponse *)response inData:(NSData*)data;
 -(void)processConnect;
--(void)mapValueList:(PTPProperty *)property map:(NSDictionary *)map;
--(void)mapValueInterval:(PTPProperty *)property map:(NSDictionary *)map;
+-(void)mapValueList:(PTPProperty *_Nonnull)property map:(NSDictionary *)map;
+-(void)mapValueInterval:(PTPProperty *_Nonnull)property map:(NSDictionary *)map;
 
 -(void)requestOpenSession;
 -(void)requestCloseSession;
 -(void)requestEnableTethering;
 
 -(void)sendPTPRequest:(PTPRequestCode)code;
--(void)sendPTPRequest:(PTPRequestCode)code data:(NSData *)data;
+-(void)sendPTPRequest:(PTPRequestCode)code data:(NSData *_Nullable)data;
 -(void)sendPTPRequest:(PTPRequestCode)code param1:(unsigned int)parameter1;
--(void)sendPTPRequest:(PTPRequestCode)code param1:(unsigned int)parameter1 data:(NSData *)data;
+-(void)sendPTPRequest:(PTPRequestCode)code param1:(unsigned int)parameter1 data:(NSData *_Nullable)data;
 -(void)sendPTPRequest:(PTPRequestCode)code param1:(unsigned int)parameter1 param2:(unsigned int)parameter2;
 -(void)sendPTPRequest:(PTPRequestCode)code param1:(unsigned int)parameter1 param2:(unsigned int)parameter2  param3:(unsigned int)parameter3;
--(void)setProperty:(PTPPropertyCode)code value:(NSString *)value;
+-(void)setProperty:(PTPPropertyCode)code value:(NSString *_Nonnull)value;
 -(void)lock;
 -(void)unlock;
 -(void)startPreview;
@@ -495,33 +501,33 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 //------------------------------------------------------------------------------------------------------------------------------
 
 @protocol PTPDelegateProtocol <NSObject>
-@optional
--(void)cameraAdded:(PTPCamera *)camera;
--(void)cameraConnected:(PTPCamera *)camera;
--(void)cameraExposureDone:(PTPCamera *)camera data:(NSData *)data filename:(NSString *)filename;
--(void)cameraExposureFailed:(PTPCamera *)camera message:(NSString *)message;
--(void)cameraPropertyChanged:(PTPCamera *)camera code:(PTPPropertyCode)code value:(NSString *)value values:(NSArray<NSString *> *)values labels:(NSArray<NSString *> *)labels readOnly:(BOOL)readOnly;
--(void)cameraPropertyChanged:(PTPCamera *)camera code:(PTPPropertyCode)code value:(NSNumber *)value min:(NSNumber *)min max:(NSNumber *)max step:(NSNumber *)step readOnly:(BOOL)readOnly;
--(void)cameraPropertyChanged:(PTPCamera *)camera code:(PTPPropertyCode)code value:(NSString *)value readOnly:(BOOL)readOnly;
--(void)cameraPropertyChanged:(PTPCamera *)camera code:(PTPPropertyCode)code readOnly:(BOOL)readOnly;
--(void)cameraDisconnected:(PTPCamera *)camera;
--(void)cameraRemoved:(PTPCamera *)camera;
--(void)cameraCanExposure:(PTPCamera *)camera;
--(void)cameraCanFocus:(PTPCamera *)camera;
--(void)cameraCanPreview:(PTPCamera *)camera;
--(void)cameraFocusDone:(PTPCamera *)camera;
--(void)cameraFocusFailed:(PTPCamera *)camera message:(NSString *)message;
--(void)cameraFrame:(PTPCamera *)camera left:(int)left top:(int)top width:(int)width height:(int)height;
--(void)error:(NSString *)message;
--(void)log:(NSString *)message;
--(void)debug:(NSString *)message;
+-(void)cameraAdded:(PTPCamera *_Nonnull)camera;
+-(void)cameraConnected:(PTPCamera *_Nonnull)camera;
+-(void)cameraExposureDone:(PTPCamera *_Nonnull)camera data:(NSData *_Nonnull)data filename:(NSString *_Nonnull)filename;
+-(void)cameraExposureFailed:(PTPCamera *_Nonnull)camera message:(NSString *_Nonnull)message;
+-(void)cameraPropertyChanged:(PTPCamera *_Nonnull)camera code:(uint32_t)code value:(NSString *_Nonnull)value values:(NSArray<NSString *> *_Nonnull)values labels:(NSArray<NSString *> *_Nonnull)labels readOnly:(BOOL)readOnly;
+-(void)cameraPropertyChanged:(PTPCamera *_Nonnull)camera code:(uint32_t)code value:(NSNumber *_Nonnull)value min:(NSNumber *_Nonnull)min max:(NSNumber *_Nonnull)max step:(NSNumber *_Nonnull)step readOnly:(BOOL)readOnly;
+-(void)cameraPropertyChanged:(PTPCamera * _Nonnull)camera code:(uint32_t)code value:(NSString *_Nonnull)value readOnly:(BOOL)readOnly;
+-(void)cameraPropertyChanged:(PTPCamera * _Nonnull)camera code:(uint32_t)code readOnly:(BOOL)readOnly;
+-(void)cameraDisconnected:(PTPCamera * _Nonnull)camera;
+-(void)cameraRemoved:(PTPCamera * _Nonnull)camera;
+-(void)cameraCanExposure:(PTPCamera * _Nonnull)camera;
+-(void)cameraCanFocus:(PTPCamera * _Nonnull)camera;
+-(void)cameraCanPreview:(PTPCamera * _Nonnull)camera;
+-(void)cameraFocusDone:(PTPCamera * _Nonnull)camera;
+-(void)cameraFocusFailed:(PTPCamera * _Nonnull)camera message:(NSString * _Nonnull)message;
+-(void)cameraFrame:(PTPCamera * _Nonnull)camera left:(int)left top:(int)top width:(int)width height:(int)height;
+-(void)error:(NSString * _Nonnull)message;
+-(void)log:(NSString * _Nonnull)message;
+-(void)debug:(NSString * _Nonnull)message;
 @end
 
 @interface PTPBrowser : NSObject <ICDeviceBrowserDelegate>
 
-@property (readonly) NSObject<PTPDelegateProtocol> *delegate;
+@property (readonly) NSArray<PTPCamera *> * _Nonnull cameras;
+@property (nonatomic, readwrite) NSObject<PTPDelegateProtocol> * _Nonnull delegate;
 
--(id)initWithDelegate:(NSObject<PTPDelegateProtocol> *)delegate;
+-(id _Nonnull)initWithDelegate:(NSObject<PTPDelegateProtocol> *_Nullable)delegate;
 -(void)start;
 -(void)stop;
 @end

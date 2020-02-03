@@ -6,8 +6,6 @@
 //  Copyright © 2017 CloudMakers, s. r. o. All rights reserved.
 //
 
-#include <indigo/indigo_bus.h>
-
 #import "indigo_ica_ptp_nikon.h"
 
 @implementation PTPNikonRequest
@@ -502,6 +500,8 @@ static struct info {
   self = [super initWithICCamera:icCamera delegate:delegate];
   if (self) {
     const char *name = [super.name.uppercaseString cStringUsingEncoding:NSASCIIStringEncoding];
+    self.isoSpeedPropertyCode = PTPPropertyCodeNikonISOSensitivity;
+    self.shutterSpeedPropertyCode = PTPPropertyCodeNikonShootingSpeed;
     for (int i = 0; info[i].name; i++)
       if (!strcmp(name, info[i].name)) {
         self.width = info[i].width;
@@ -889,7 +889,7 @@ static struct info {
             unsigned int value = ptpReadUnsignedInt(&bytes);
             if (value == 0) {
               [self sendPTPRequest:PTPRequestCodeNikonStartLiveView];
-              indigo_usleep(100000);
+              usleep(100000);
             } else {
               NSMutableString *text = [NSMutableString stringWithFormat:@"LiveViewProhibitCondition 0x%08x", value];
               if (value & 0x80000000)
@@ -944,7 +944,7 @@ static struct info {
     }
     case PTPRequestCodeNikonDeviceReady: {
       if (response.responseCode == PTPResponseCodeDeviceBusy) {
-        indigo_usleep(100000);
+        usleep(100000);
         [self sendPTPRequest:PTPRequestCodeNikonDeviceReady];
       }
       break;
@@ -1043,7 +1043,7 @@ static struct info {
         }
       } else if (response.responseCode == PTPResponseCodeDeviceBusy) {
         [self.delegate debug:[NSString stringWithFormat:@"PTPResponseCodeDeviceBusy"]];
-        indigo_usleep(100000);
+        usleep(100000);
         [self getPreviewImage];
       } else {
         [self.delegate cameraExposureFailed:self message:[NSString stringWithFormat:@"No data received (0x%04x = %@)", response.responseCode, response]];
