@@ -490,12 +490,12 @@ static PTPSonyProperty *ptpReadSonyProperty(unsigned char** buf) {
               [self.delegate cameraExposureFailed:self message:@"LiveView failed"];
             }
           } else {
-            uint8 *start = (uint8 *)data.bytes;
+            uint8_t *start = (uint8_t *)data.bytes;
             unsigned long i = data.length;
             retryCount = 0;
             while (i > 0) {
               if (start[0] == 0xFF && start[1] == 0xD8 && start[2] == 0xFF && start[3] == 0xDB) {
-                uint8 *end = start + 2;
+                uint8_t *end = start + 2;
                 i -= 2;
                 while (i > 0) {
                   if (end[0] == 0xFF && end[1] == 0xD9) {

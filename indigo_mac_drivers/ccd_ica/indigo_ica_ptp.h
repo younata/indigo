@@ -67,7 +67,7 @@
 //
 //------------------------------------------------------------------------------------------------------------------------------
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #import <ImageCaptureCore/ImageCaptureCore.h>
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -300,6 +300,7 @@ typedef unsigned short PTPDataTypeCode;
 
 //------------------------------------------------------------------------------------------------------------------------------
 
+NS_ASSUME_NONNULL_BEGIN
 extern char ptpReadChar(unsigned char** buf);
 extern void ptpWriteChar(unsigned char** buf, char value);
 extern unsigned char ptpReadUnsignedChar(unsigned char** buf);
@@ -352,6 +353,9 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 -(NSData*)commandBuffer;
 @end
 
+NS_ASSUME_NONNULL_END
+
+
 //------------------------------------------------------------------------------------------------------------------------------
 
 @interface PTPResponse : NSObject
@@ -363,8 +367,8 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @property unsigned int parameter3;
 @property unsigned int parameter4;
 @property unsigned int parameter5;
-+(NSString *)responseCodeName:(PTPResponseCode)responseCode;
--(id)initWithData:(NSData*)data;
++(NSString * _Nonnull)responseCodeName:(PTPResponseCode)responseCode;
+-(id _Nullable)initWithData:(NSData* _Nonnull)data;
 @end
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -376,9 +380,9 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @property unsigned int parameter1;
 @property unsigned int parameter2;
 @property unsigned int parameter3;
-+(NSString *)eventCodeName:(PTPEventCode)eventCode;
--(id)initWithData:(NSData*)data;
--(id)initWithCode:(PTPEventCode)eventCode parameter1:(unsigned int)parameter1;
++(NSString * _Nonnull)eventCodeName:(PTPEventCode)eventCode;
+-(id _Nullable)initWithData:(NSData* _Nonnull)data;
+-(id _Nonnull)initWithCode:(PTPEventCode)eventCode parameter1:(unsigned int)parameter1;
 @end
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -387,16 +391,16 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @property PTPPropertyCode propertyCode;
 @property PTPDataTypeCode type;
 @property BOOL readOnly;
-@property NSObject* defaultValue;
-@property NSObject* value;
-@property NSNumber* min;
-@property NSNumber* max;
-@property NSNumber* step;
-@property NSArray<NSObject*> *supportedValues;
-+(NSString *)propertyCodeName:(PTPPropertyCode)propertyCode;
-+(NSString *)typeName:(PTPDataTypeCode)type;
--(id)initWithCode:(PTPPropertyCode)propertyCode;
--(id)initWithData:(NSData*)data;
+@property NSObject* _Nullable defaultValue;
+@property NSObject* _Nullable value;
+@property NSNumber* _Nullable min;
+@property NSNumber* _Nullable max;
+@property NSNumber* _Nullable step;
+@property NSArray<NSObject*> * _Nullable supportedValues;
++(NSString * _Nullable)propertyCodeName:(PTPPropertyCode)propertyCode;
++(NSString * _Nullable)typeName:(PTPDataTypeCode)type;
+-(id _Nullable)initWithCode:(PTPPropertyCode)propertyCode;
+-(id _Nonnull)initWithData:(NSData*)data;
 @end
 
 //--------------------------------------------------------------------------------------------------------------------- PTPDeviceInfo
@@ -404,17 +408,17 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @interface PTPDeviceInfo : PTPVendor
 @property unsigned short standardVersion;
 @property unsigned short vendorExtensionVersion;
-@property NSString *vendorExtensionDesc;
+@property NSString * _Nonnull vendorExtensionDesc;
 @property unsigned short functionalMode;
-@property NSArray<NSNumber *> *operationsSupported;
-@property NSArray<NSNumber *> *eventsSupported;
-@property NSArray<NSNumber *> *propertiesSupported;
-@property NSString *manufacturer;
-@property NSString *model;
-@property NSString *version;
-@property NSString *serial;
-@property NSMutableDictionary<NSNumber *, PTPProperty *> *properties;
--(id)initWithData:(NSData*)data;
+@property NSArray<NSNumber *> *_Nullable operationsSupported;
+@property NSArray<NSNumber *> *_Nullable eventsSupported;
+@property NSArray<NSNumber *> *_Nullable propertiesSupported;
+@property NSString *_Nullable manufacturer;
+@property NSString *_Nullable model;
+@property NSString *_Nullable version;
+@property NSString *_Nullable serial;
+@property NSMutableDictionary<NSNumber *, PTPProperty *> * _Nullable properties;
+-(id _Nullable)initWithData:(NSData* _Nonnull)data;
 @end
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -429,8 +433,8 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 
 @interface PTPCamera: NSObject<ICCameraDeviceDelegate, ICCameraDeviceDownloadDelegate>
 
-@property (readonly) ICCameraDevice *icCamera;
-@property (readonly) NSObject<PTPDelegateProtocol> *delegate;
+@property (readonly, nonnull) ICCameraDevice * icCamera;
+@property (readonly, nonnull) NSObject<PTPDelegateProtocol> * delegate;
 @property (readonly, nonnull) NSString *name;
 @property (readonly) PTPVendorExtension extension;
 
@@ -452,7 +456,7 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @property BOOL zoomPreview;
 
 @property (readwrite, nullable) PTPDeviceInfo *info;
-@property NSObject *userData;
+@property (readwrite, nullable) NSObject *userData;
 @property int width;
 @property int height;
 @property float pixelSize;
@@ -460,7 +464,7 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 @property int imagesPerShot;
 @property int remainingCount;
 
--(id)initWithICCamera:(ICCameraDevice *)icCamera delegate:(NSObject<PTPDelegateProtocol> *)delegate;
+-(id)initWithICCamera:(ICCameraDevice *_Nonnull)icCamera delegate:(NSObject<PTPDelegateProtocol> *_Nonnull)delegate;
 
 -(BOOL)operationIsSupported:(PTPRequestCode)code;
 -(BOOL)propertyIsSupported:(PTPPropertyCode)code;
@@ -468,10 +472,10 @@ extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
 -(void)checkForEvent;
 -(void)processEvent:(PTPEvent *_Nonnull)event;
 -(void)processPropertyDescription:(PTPProperty *_Nonnull)property;
--(void)processRequest:(PTPRequest *_Nonnull)request Response:(PTPResponse *)response inData:(NSData*)data;
+-(void)processRequest:(PTPRequest *_Nonnull)request Response:(PTPResponse *_Nullable)response inData:(NSData *_Nullable)data;
 -(void)processConnect;
--(void)mapValueList:(PTPProperty *_Nonnull)property map:(NSDictionary *)map;
--(void)mapValueInterval:(PTPProperty *_Nonnull)property map:(NSDictionary *)map;
+-(void)mapValueList:(PTPProperty *_Nonnull)property map:(NSDictionary *_Nonnull)map;
+-(void)mapValueInterval:(PTPProperty *_Nonnull)property map:(NSDictionary *_Nonnull)map;
 
 -(void)requestOpenSession;
 -(void)requestCloseSession;

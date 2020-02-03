@@ -1006,6 +1006,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(void)checkForEvent {
+    [_delegate debug:@"Checking for event"];
 }
 
 -(BOOL)operationIsSupported:(PTPRequestCode)code {
@@ -1226,7 +1227,11 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     case PTPRequestCodeGetStorageIDs: {
       if (response.responseCode == PTPResponseCodeOK) {
         [self processConnect];
-        ptpEventTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(checkForEvent) userInfo:nil repeats:true];
+          __weak PTPCamera *weakSelf = self;
+          ptpEventTimer = [NSTimer timerWithTimeInterval:0.5 repeats:true block:^(NSTimer * _Nonnull timer) {
+              [weakSelf checkForEvent];
+          }];
+          [[NSRunLoop mainRunLoop] addTimer:ptpEventTimer forMode:NSDefaultRunLoopMode];
       }
       break;
     }
@@ -1236,6 +1241,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     }
     case PTPRequestCodeGetDeviceInfo: {
       if (response.responseCode == PTPResponseCodeOK && data) {
+          [_delegate debug:@"Recieved device info, default camera type."];
         _info = [[self.deviceInfoClass alloc] initWithData:data];
         if ([_info.operationsSupported containsObject:[NSNumber numberWithUnsignedShort:PTPRequestCodeInitiateCapture]]) {
           [_delegate cameraCanExposure:self];
@@ -1243,6 +1249,8 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
         for (NSNumber *code in _info.propertiesSupported)
           [self sendPTPRequest:PTPRequestCodeGetDevicePropDesc param1:code.unsignedShortValue];
         [self sendPTPRequest:PTPRequestCodeGetStorageIDs];
+      } else {
+          [_delegate log:[NSString stringWithFormat:@"Received response %@ for getting device info", response]];
       }
       break;
     }
@@ -1261,10 +1269,11 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with error %@", request, error]];
   } else {
     PTPResponse* response = [[self.responseClass alloc] initWithData:responseData];
-    if (data)
+    if (data) {
       [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@ and %lub", request, response, data.length]];
-    else
+    } else {
       [self.delegate debug:[NSString stringWithFormat:@"Completed %@ with %@", request, response]];
+    }
     [self processRequest:request Response:response inData:data];
   }
 }
@@ -1403,14 +1412,14 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   PTPRequest *request = [[self.requestClass alloc] init];
   request.operationCode = operationCode;
   request.numberOfParameters = 0;
-    [self sendPTPCommand:request data:data];
+  [self sendPTPCommand:request data:data];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode {
   PTPRequest *request = [[self.requestClass alloc] init];
   request.operationCode = operationCode;
   request.numberOfParameters = 0;
-    [self sendPTPCommand:request data:nil];
+  [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 {
@@ -1418,7 +1427,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.operationCode = operationCode;
   request.numberOfParameters = 1;
   request.parameter1 = parameter1;
-    [self sendPTPCommand:request data:nil];
+  [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 param2:(unsigned int)parameter2 {
@@ -1427,7 +1436,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.numberOfParameters = 2;
   request.parameter1 = parameter1;
   request.parameter2 = parameter2;
-    [self sendPTPCommand:request data:nil];
+  [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 param2:(unsigned int)parameter2  param3:(unsigned int)parameter3 {
@@ -1437,7 +1446,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.parameter1 = parameter1;
   request.parameter2 = parameter2;
   request.parameter3 = parameter3;
-    [self sendPTPCommand:request data:nil];
+  [self sendPTPCommand:request data:nil];
 }
 
 -(void)sendPTPRequest:(PTPRequestCode)operationCode param1:(unsigned int)parameter1 data:(NSData *)data {
@@ -1445,22 +1454,21 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   request.operationCode = operationCode;
   request.numberOfParameters = 1;
   request.parameter1 = parameter1;
-    [self sendPTPCommand:request data:data];
+  [self sendPTPCommand:request data:data];
 }
 
 -(void)sendPTPCommand:(PTPRequest *)request data:(NSData *)data {
 #if TARGET_OS_OSX
-    [_icCamera requestSendPTPCommand:request.commandBuffer outData:data sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
+  [_icCamera requestSendPTPCommand:request.commandBuffer outData:data sendCommandDelegate:self didSendCommandSelector:@selector(didSendPTPCommand:inData:response:error:contextInfo:) contextInfo:(void *)CFBridgingRetain(request)];
 #else
-    void *ctx = CFBridgingRetain(request);
-    [_icCamera requestSendPTPCommand:request.commandBuffer outData:data completion:^(NSData * _Nonnull responseData, NSData * _Nonnull ptpResponseData, NSError * _Nullable error) {
-        [self didSendPTPCommand:request.commandBuffer inData:responseData response:ptpResponseData error:error contextInfo:ctx];
-    }];
+  [_icCamera requestSendPTPCommand:request.commandBuffer outData:data completion:^(NSData * _Nonnull responseData, NSData * _Nonnull ptpResponseData, NSError * _Nullable error) {
+    [self didSendPTPCommand:request.commandBuffer inData:responseData response:ptpResponseData error:error contextInfo:(void *)request];
+  }];
 #endif
 }
 
 -(void)device:(ICDevice*)camera didOpenSessionWithError:(NSError*)error {
-  [self sendPTPRequest:PTPRequestCodeGetDeviceInfo];
+  [self.delegate log:[NSString stringWithFormat:@"Did open session with error: %@", error]];
 }
 
 -(void)device:(ICDevice*)camera didCloseSessionWithError:(NSError*)error {
@@ -1500,6 +1508,10 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(void)cameraDevice:(ICCameraDevice*)camera didReceivePTPEvent:(NSData*)eventData {
+  [self handlePTPEvent:eventData];
+}
+
+-(void)handlePTPEvent:(NSData *)eventData {
   PTPEvent *event = [[self.eventClass alloc] initWithData:eventData];
   [self.delegate debug:[NSString stringWithFormat:@"Received %@", event]];
   switch (_info.vendorExtension) {
@@ -1513,6 +1525,53 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   }
 }
 
+- (void)cameraDevice:(nonnull ICCameraDevice *)camera didAddItems:(nonnull NSArray<ICCameraItem *> *)items {
+
+}
+
+
+- (void)cameraDevice:(nonnull ICCameraDevice *)camera didReceiveMetadata:(NSDictionary * _Nullable)metadata forItem:(nonnull ICCameraItem *)item error:(NSError * _Nullable)error {
+
+}
+
+
+- (void)cameraDevice:(nonnull ICCameraDevice *)camera didReceiveThumbnail:(CGImageRef _Nullable)thumbnail forItem:(nonnull ICCameraItem *)item error:(NSError * _Nullable)error {
+
+}
+
+
+- (void)cameraDevice:(nonnull ICCameraDevice *)camera didRemoveItems:(nonnull NSArray<ICCameraItem *> *)items {
+
+}
+
+
+- (void)cameraDevice:(nonnull ICCameraDevice *)camera didRenameItems:(nonnull NSArray<ICCameraItem *> *)items {
+
+}
+
+
+- (void)cameraDeviceDidChangeCapability:(nonnull ICCameraDevice *)camera {
+    [_delegate debug:@"Device did change capability"];
+}
+
+
+- (void)cameraDeviceDidEnableAccessRestriction:(nonnull ICDevice *)device {
+
+}
+
+
+- (void)cameraDeviceDidRemoveAccessRestriction:(nonnull ICDevice *)device {
+
+}
+
+
+- (void)deviceDidBecomeReadyWithCompleteContentCatalog:(nonnull ICCameraDevice *)device {
+    [_delegate debug:@"Device ready"];
+    device.ptpEventHandler = ^(NSData * _Nonnull eventData) {
+        [self handlePTPEvent:eventData];
+    };
+    [self sendPTPRequest:PTPRequestCodeGetDeviceInfo];
+}
 
 @end
 

@@ -557,22 +557,30 @@ static struct info {
 }
 
 -(void)processConnect {
-  if ([self operationIsSupported:PTPRequestCodeCanonRemoteRelease])
-    [self.delegate cameraCanExposure:self];
-  if ([self operationIsSupported:PTPRequestCodeCanonDriveLens])
-    [self.delegate cameraCanFocus:self];
-  if ([self operationIsSupported:PTPRequestCodeCanonGetViewFinderData])
-    [self.delegate cameraCanPreview:self];
-  //[self setProperty:PTPPropertyCodeCanonEVFOutputDevice value:@"1"];
-  [self setProperty:PTPPropertyCodeCanonExMirrorLockup value:@"0"];
-  [super processConnect];
+    if (self.info == nil) {
+        [self.delegate error:@"Connect was processed before info was created"];
+    }
+    if ([self operationIsSupported:PTPRequestCodeCanonRemoteRelease]) {
+        [self.delegate cameraCanExposure:self];
+    }
+    if ([self operationIsSupported:PTPRequestCodeCanonDriveLens]) {
+        [self.delegate cameraCanFocus:self];
+    }
+    if ([self operationIsSupported:PTPRequestCodeCanonGetViewFinderData]) {
+        [self.delegate cameraCanPreview:self];
+    }
+    //[self setProperty:PTPPropertyCodeCanonEVFOutputDevice value:@"1"];
+    [self setProperty:PTPPropertyCodeCanonExMirrorLockup value:@"0"];
+    [super processConnect];
 }
 
 -(void)processRequest:(PTPRequest *)request Response:(PTPResponse *)response inData:(NSData*)data {
+    [self.delegate debug:[NSString stringWithFormat:@"Response: %@\nResponse: %@", request, response]];
   switch (request.operationCode) {
     case PTPRequestCodeGetDeviceInfo: {
       if (response.responseCode == PTPResponseCodeOK && data) {
         self.info = [[self.deviceInfoClass alloc] initWithData:data];
+        [self.delegate debug:@"Retrieved device info for camera type canon"];
         if ([self operationIsSupported:PTPRequestCodeInitiateCapture]) {
           [self.delegate cameraCanExposure:self];
         }
