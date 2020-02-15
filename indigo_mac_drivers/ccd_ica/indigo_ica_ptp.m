@@ -957,8 +957,6 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
     objectAdded = false;
     _imagesPerShot = 1;
     _remainingCount = 0;
-    self.isoSpeedPropertyCode = PTPPropertyCodeExposureIndex;
-    self.shutterSpeedPropertyCode = PTPPropertyCodeExposureTime;
   }
   return self;
 }
@@ -1377,15 +1375,51 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 - (PTPProperty *)isoSpeedProperty {
-    return self.info.properties[@(self.isoSpeedPropertyCode)];
+    return self.info.properties[@(PTPPropertyCodeExposureIndex)];
 }
 
 - (PTPProperty *)shutterSpeedProperty {
-    return self.info.properties[@(self.shutterSpeedPropertyCode)];
+    return self.info.properties[@(PTPPropertyCodeExposureTime)];
+}
+
+- (PTPProperty *)cameraModeProperty {
+    return self.info.properties[@(PTPPropertyCodeFunctionalMode)];
+}
+
+- (PTPProperty *)apertureProperty {
+    return self.info.properties[@(PTPPropertyCodeFNumber)];
+}
+
+- (PTPProperty *)whiteBalanceProperty {
+    return  self.info.properties[@(PTPPropertyCodeWhiteBalance)];
+}
+
+- (PTPProperty *)exposureCompensationProperty {
+    return self.info.properties[@(PTPPropertyCodeExposureBiasCompensation)];
+}
+
+- (PTPProperty *)imageFormatProperty {
+    return nil;
+}
+
+- (PTPProperty *)mirrorLockupProperty {
+    return [self propertyWithPotentialCodes:@[
+        @(PTPPropertyCodeCanonMirrorUpSetting),
+        @(PTPPropertyCodeCanonExMirrorLockup)
+    ]];
 }
 
 - (NSInteger)batteryLevel {
     return [_icCamera batteryLevel];
+}
+
+- (PTPProperty *)propertyWithPotentialCodes:(NSArray <NSNumber *> *)codes {
+    for (NSNumber *code in codes) {
+        if (self.info.properties[code] != nil) {
+            return self.info.properties[code];
+        }
+    }
+    return nil;
 }
 
 -(double)startExposure {

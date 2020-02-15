@@ -445,10 +445,15 @@ NS_ASSUME_NONNULL_END
 @property (readonly, nonnull) Class deviceInfoClass;
 
 @property (readonly, nullable) PTPProperty *isoSpeedProperty;
-@property uint16_t isoSpeedPropertyCode;
 @property (readonly, nullable) PTPProperty *shutterSpeedProperty;
-@property uint16_t shutterSpeedPropertyCode;
+@property (readonly, nullable) PTPProperty *cameraModeProperty;
+@property (readonly, nullable) PTPProperty *apertureProperty;
+@property (readonly, nullable) PTPProperty *whiteBalanceProperty;
+@property (readonly, nullable) PTPProperty *exposureCompensationProperty;
+@property (readonly, nullable) PTPProperty *imageFormatProperty;
+@property (readonly, nullable) PTPProperty *mirrorLockupProperty;
 @property (readonly) NSInteger batteryLevel;
+
 
 @property BOOL avoidAF;
 @property BOOL useMirrorLockup;
@@ -499,6 +504,8 @@ NS_ASSUME_NONNULL_END
 -(void)startAutofocus;
 -(void)stopAutofocus;
 -(void)focus:(int)steps;
+
+- (PTPProperty *_Nullable)propertyWithPotentialCodes:(NSArray <NSNumber *> *)codes;
 
 @end
 

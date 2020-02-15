@@ -510,8 +510,6 @@ static struct info {
         break;
       }
     }
-    self.isoSpeedPropertyCode = PTPPropertyCodeCanonISOSpeed;
-    self.shutterSpeedPropertyCode = PTPPropertyCodeCanonShutterSpeed;
     addedFileName = [NSMutableDictionary dictionary];
   }
   return self;
@@ -1565,6 +1563,41 @@ static struct info {
 
 - (PTPProperty *)shutterSpeedProperty {
     return self.info.properties[@(PTPPropertyCodeCanonShutterSpeed)];
+}
+
+- (PTPProperty *)cameraModeProperty {
+    return self.info.properties[@(PTPPropertyCodeCanonAutoExposureMode)];
+}
+
+- (PTPProperty *)apertureProperty {
+    return self.info.properties[@(PTPPropertyCodeCanonAperture)];
+}
+
+- (PTPProperty *)whiteBalanceProperty {
+    return [self propertyWithPotentialCodes:@[
+        @(PTPPropertyCodeCanonEVFWBMode),
+        @(PTPPropertyCodeCanonWhiteBalance)
+    ]];
+}
+
+- (PTPProperty *)exposureCompensationProperty {
+    return self.info.properties[@(PTPPropertyCodeCanonExpCompensation)];
+}
+
+- (PTPProperty *)imageFormatProperty {
+    return [self propertyWithPotentialCodes:@[
+        @(PTPPropertyCodeCanonImageFormat),
+        @(PTPPropertyCodeCanonImageFormatCF),
+        @(PTPPropertyCodeCanonImageFormatSD),
+        @(PTPPropertyCodeCanonImageFormatExtHD)
+    ]];
+}
+
+- (PTPProperty *)mirrorLockupProperty {
+    return [self propertyWithPotentialCodes:@[
+        @(PTPPropertyCodeCanonMirrorUpSetting),
+        @(PTPPropertyCodeCanonExMirrorLockup)
+    ]];
 }
 
 - (NSInteger)batteryLevel {

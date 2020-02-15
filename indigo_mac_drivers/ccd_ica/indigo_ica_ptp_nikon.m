@@ -500,8 +500,6 @@ static struct info {
   self = [super initWithICCamera:icCamera delegate:delegate];
   if (self) {
     const char *name = [super.name.uppercaseString cStringUsingEncoding:NSASCIIStringEncoding];
-    self.isoSpeedPropertyCode = PTPPropertyCodeNikonISOSensitivity;
-    self.shutterSpeedPropertyCode = PTPPropertyCodeNikonShootingSpeed;
     for (int i = 0; info[i].name; i++)
       if (!strcmp(name, info[i].name)) {
         self.width = info[i].width;
@@ -1172,6 +1170,44 @@ static struct info {
       }
     }
   }
+}
+
+- (PTPProperty *)isoSpeedProperty {
+    return self.info.properties[@(PTPPropertyCodeNikonISOSensitivity)];
+
+}
+
+- (PTPProperty *)shutterSpeedProperty {
+    return self.info.properties[@(PTPPropertyCodeNikonShootingSpeed)];
+}
+
+- (PTPProperty *)cameraModeProperty {
+    return self.info.properties[@(PTPPropertyCodeExposureProgramMode)];
+}
+
+- (PTPProperty *)apertureProperty {
+    return [super apertureProperty];
+}
+
+- (PTPProperty *)whiteBalanceProperty {
+    return self.info.properties[@(PTPPropertyCodeWhiteBalance)];
+}
+
+- (PTPProperty *)exposureCompensationProperty {
+    return [super exposureCompensationProperty];
+}
+
+- (PTPProperty *)imageFormatProperty {
+    return [super imageFormatProperty];
+}
+
+- (PTPProperty *)mirrorLockupProperty {
+    return [super mirrorLockupProperty];
+}
+
+- (NSInteger)batteryLevel {
+    PTPProperty *batterylevel = self.info.properties[@(PTPPropertyCodeBatteryLevel)];
+    return [(NSNumber *)batterylevel.value integerValue];
 }
 
 @end
