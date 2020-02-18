@@ -1600,6 +1600,11 @@ static struct info {
     ]];
 }
 
+- (NSNumber *)isBulb {
+    if (currentMode == 0) { return nil; }
+    return @(currentMode == 4); // Is set to bulb.
+}
+
 - (NSInteger)batteryLevel {
     PTPProperty *batterylevel = self.info.properties[@(PTPPropertyCodeBatteryLevel)];
     return [(NSNumber *)batterylevel.value integerValue];

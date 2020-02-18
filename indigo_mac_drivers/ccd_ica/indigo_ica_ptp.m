@@ -1383,7 +1383,7 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 - (PTPProperty *)cameraModeProperty {
-    return self.info.properties[@(PTPPropertyCodeFunctionalMode)];
+    return self.info.properties[@(PTPPropertyCodeExposureProgramMode)];
 }
 
 - (PTPProperty *)apertureProperty {
@@ -1407,6 +1407,13 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
         @(PTPPropertyCodeCanonMirrorUpSetting),
         @(PTPPropertyCodeCanonExMirrorLockup)
     ]];
+}
+
+- (NSNumber *)isBulb {
+    PTPProperty *property = self.info.properties[@(PTPPropertyCodeExposureTime)];
+    if (property == nil) { return nil; }
+    if ([property.value isKindOfClass:[NSNumber class]] == NO) { return nil; }
+    return @(((NSNumber *)property.value).intValue == -1);
 }
 
 - (NSInteger)batteryLevel {

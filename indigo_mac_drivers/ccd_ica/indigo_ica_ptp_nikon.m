@@ -1177,34 +1177,6 @@ static struct info {
 
 }
 
-- (PTPProperty *)shutterSpeedProperty {
-    return self.info.properties[@(PTPPropertyCodeNikonShootingSpeed)];
-}
-
-- (PTPProperty *)cameraModeProperty {
-    return self.info.properties[@(PTPPropertyCodeExposureProgramMode)];
-}
-
-- (PTPProperty *)apertureProperty {
-    return [super apertureProperty];
-}
-
-- (PTPProperty *)whiteBalanceProperty {
-    return self.info.properties[@(PTPPropertyCodeWhiteBalance)];
-}
-
-- (PTPProperty *)exposureCompensationProperty {
-    return [super exposureCompensationProperty];
-}
-
-- (PTPProperty *)imageFormatProperty {
-    return [super imageFormatProperty];
-}
-
-- (PTPProperty *)mirrorLockupProperty {
-    return [super mirrorLockupProperty];
-}
-
 - (NSInteger)batteryLevel {
     PTPProperty *batterylevel = self.info.properties[@(PTPPropertyCodeBatteryLevel)];
     return [(NSNumber *)batterylevel.value integerValue];

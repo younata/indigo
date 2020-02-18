@@ -452,6 +452,7 @@ NS_ASSUME_NONNULL_END
 @property (readonly, nullable) PTPProperty *exposureCompensationProperty;
 @property (readonly, nullable) PTPProperty *imageFormatProperty;
 @property (readonly, nullable) PTPProperty *mirrorLockupProperty;
+@property (readonly, nullable) NSNumber *isBulb;
 @property (readonly) NSInteger batteryLevel;
 
 
