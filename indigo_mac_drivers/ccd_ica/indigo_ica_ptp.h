@@ -301,6 +301,9 @@ typedef unsigned short PTPDataTypeCode;
 //------------------------------------------------------------------------------------------------------------------------------
 
 NS_ASSUME_NONNULL_BEGIN
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnullability-completeness"
 extern char ptpReadChar(unsigned char** buf);
 extern void ptpWriteChar(unsigned char** buf, char value);
 extern unsigned char ptpReadUnsignedChar(unsigned char** buf);
@@ -329,6 +332,7 @@ extern NSArray<NSNumber *> *ptpReadUnsignedLongArray(unsigned char** buf);
 extern NSString *ptpReadString(unsigned char** buf);
 extern unsigned int  ptpWriteString(unsigned char **buf, NSString *value);
 extern NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf);
+#pragma clang diagnostic pop
 
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -400,7 +404,7 @@ NS_ASSUME_NONNULL_END
 +(NSString * _Nullable)propertyCodeName:(PTPPropertyCode)propertyCode;
 +(NSString * _Nullable)typeName:(PTPDataTypeCode)type;
 -(id _Nullable)initWithCode:(PTPPropertyCode)propertyCode;
--(id _Nonnull)initWithData:(NSData*)data;
+-(id _Nonnull)initWithData:(NSData* _Nullable)data;
 @end
 
 //--------------------------------------------------------------------------------------------------------------------- PTPDeviceInfo
@@ -470,7 +474,7 @@ NS_ASSUME_NONNULL_END
 @property int imagesPerShot;
 @property int remainingCount;
 
--(id)initWithICCamera:(ICCameraDevice *_Nonnull)icCamera delegate:(NSObject<PTPDelegateProtocol> *_Nonnull)delegate;
+-(id _Nonnull)initWithICCamera:(ICCameraDevice *_Nonnull)icCamera delegate:(NSObject<PTPDelegateProtocol> *_Nonnull)delegate;
 
 -(BOOL)operationIsSupported:(PTPRequestCode)code;
 -(BOOL)propertyIsSupported:(PTPPropertyCode)code;
@@ -506,7 +510,7 @@ NS_ASSUME_NONNULL_END
 -(void)stopAutofocus;
 -(void)focus:(int)steps;
 
-- (PTPProperty *_Nullable)propertyWithPotentialCodes:(NSArray <NSNumber *> *)codes;
+- (PTPProperty *_Nullable)propertyWithPotentialCodes:(NSArray <NSNumber *> * _Nonnull)codes;
 
 @end
 
@@ -518,7 +522,7 @@ NS_ASSUME_NONNULL_END
 -(void)cameraExposureDone:(PTPCamera *_Nonnull)camera data:(NSData *_Nonnull)data filename:(NSString *_Nonnull)filename;
 -(void)cameraExposureFailed:(PTPCamera *_Nonnull)camera message:(NSString *_Nonnull)message;
 -(void)cameraPropertyChanged:(PTPCamera *_Nonnull)camera code:(uint32_t)code value:(NSString *_Nonnull)value values:(NSArray<NSString *> *_Nonnull)values labels:(NSArray<NSString *> *_Nonnull)labels readOnly:(BOOL)readOnly;
--(void)cameraPropertyChanged:(PTPCamera *_Nonnull)camera code:(uint32_t)code value:(NSNumber *_Nonnull)value min:(NSNumber *_Nonnull)min max:(NSNumber *_Nonnull)max step:(NSNumber *_Nonnull)step readOnly:(BOOL)readOnly;
+-(void)cameraPropertyChanged:(PTPCamera *_Nonnull)camera code:(uint32_t)code value:(NSNumber *_Nonnull)value min:(NSNumber *_Nonnull)min max:(NSNumber *_Nonnull)max step:(NSNumber *_Nullable)step readOnly:(BOOL)readOnly;
 -(void)cameraPropertyChanged:(PTPCamera * _Nonnull)camera code:(uint32_t)code value:(NSString *_Nonnull)value readOnly:(BOOL)readOnly;
 -(void)cameraPropertyChanged:(PTPCamera * _Nonnull)camera code:(uint32_t)code readOnly:(BOOL)readOnly;
 -(void)cameraDisconnected:(PTPCamera * _Nonnull)camera;
@@ -536,8 +540,8 @@ NS_ASSUME_NONNULL_END
 
 @interface PTPBrowser : NSObject <ICDeviceBrowserDelegate>
 
-@property (readonly) NSArray<PTPCamera *> * _Nonnull cameras;
-@property (nonatomic, readwrite) NSObject<PTPDelegateProtocol> * _Nonnull delegate;
+@property (readonly, nonnull) NSArray<PTPCamera *> * cameras;
+@property (nonatomic, readwrite, nonnull) NSObject<PTPDelegateProtocol> * delegate;
 
 -(id _Nonnull)initWithDelegate:(NSObject<PTPDelegateProtocol> *_Nullable)delegate;
 -(void)start;
