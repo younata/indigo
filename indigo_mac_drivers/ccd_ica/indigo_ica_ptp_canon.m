@@ -1013,7 +1013,7 @@ static struct info {
             break;
           }
           case PTPPropertyCodeCanonAutoExposureMode: {
-            NSDictionary *map = @{ @0: @"Program AE", @1: @"Shutter Priority AE", @2: @"Aperture Priority AE", @3: @"Manual Exposure", @4: @"Bulb", @5: @"Auto DEP AE", @6: @"DEP AE", @8: @"Lock", @9: @"Auto", @10: @"Night Scene Portrait", @11: @"Sports", @12: @"Portrait", @13: @"Landscape", @14: @"Close-Up", @15: @"Flash Off", @19: @"Creative Auto", @22: @"Scene Intelligent Auto" };
+            NSDictionary *map = @{ @0: @"Program AE", @1: @"Shutter Priority AE", @2: @"Aperture Priority AE", @3: @"Manual", @4: @"Bulb", @5: @"Auto DEP AE", @6: @"DEP AE", @8: @"Lock", @9: @"Auto", @10: @"Night Scene Portrait", @11: @"Sports", @12: @"Portrait", @13: @"Landscape", @14: @"Close-Up", @15: @"Flash Off", @19: @"Creative Auto", @22: @"Scene Intelligent Auto" };
             [self mapValueInterval:property map:map];
             [self.delegate cameraPropertyChanged:self code:PTPPropertyCodeCanonAperture readOnly:currentMode != 2 && currentMode != 3 && currentMode != 4];
             [self.delegate cameraPropertyChanged:self code:PTPPropertyCodeCanonShutterSpeed readOnly:currentMode != 1 && currentMode != 3];
