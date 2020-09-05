@@ -546,6 +546,9 @@ NS_ASSUME_NONNULL_END
 -(id _Nonnull)initWithDelegate:(NSObject<PTPDelegateProtocol> *_Nullable)delegate;
 -(void)start;
 -(void)stop;
+-(nonnull ICAuthorizationStatus)controlAuthorizationStatus;
+- (void)requestControlAuthorizationWithCompletion:(void (^ _Nonnull)(ICAuthorizationStatus _Nonnull status))completion;
+
 @end
 
 //------------------------------------------------------------------------------------------------------------------------------

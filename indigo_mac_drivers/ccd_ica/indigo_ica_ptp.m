@@ -1649,6 +1649,14 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
   [icBrowser stop];
 }
 
+-(ICAuthorizationStatus)controlAuthorizationStatus {
+    return [icBrowser controlAuthorizationStatus];
+}
+
+- (void)requestControlAuthorizationWithCompletion:(void (^)(ICAuthorizationStatus status))completion {
+    [icBrowser requestControlAuthorizationWithCompletion:completion];
+}
+
 -(void)deviceBrowser:(ICDeviceBrowser*)browser didAddDevice:(ICDevice*)device moreComing:(BOOL)moreComing {
   PTPCamera *camera;
   if (device.usbVendorID == 0x04B0)
