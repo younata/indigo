@@ -996,11 +996,9 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 }
 
 -(void)requestEnableTethering {
-#if TARGET_OS_OSX
-  [_icCamera requestEnableTethering];
-#else
-    // Doesn't appear to actually be used anymore?
-#endif
+  if ([_icCamera respondsToSelector:@selector(requestEnableTethering)]) {
+    [_icCamera performSelector:@selector(requestEnableTethering)];
+  }
 }
 
 -(void)checkForEvent {
@@ -1431,9 +1429,9 @@ NSObject *ptpReadValue(PTPDataTypeCode type, unsigned char **buf) {
 
 -(double)startExposure {
   _remainingCount = _imagesPerShot;
-#if TARGET_OS_OSX
-  [_icCamera requestTakePicture];
-#endif
+  if ([_icCamera respondsToSelector:@selector(requestTakePicture)]) {
+    [_icCamera performSelector:@selector(requestTakePicture)];
+  }
   return 0.0;
 }
 
